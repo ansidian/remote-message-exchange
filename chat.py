@@ -25,6 +25,7 @@ def initialize_server(port):
 
         thread = threading.Thread(target=accept_connections, daemon=True)
         thread.start()
+    
     except OSError as e:
         print(f"Error: Unable to bind to port {port}. The port may already be in use.")
         sys.exit(1)
@@ -49,6 +50,8 @@ def accept_connections():
             thread.start()
         except:
             break
+
+
 
 # client
 def connect_to_peer(destination, port):
@@ -76,16 +79,73 @@ def connect_to_peer(destination, port):
         return False
 
 
-def terminate_connection(connection_id):
-    """Terminate a specific connection by ID"""
-    # TODO: close socket and remove from peer_connections
-    pass
+def terminate_connection(connection_id, peer_connections):
+    #Josh
+    """
+        - Terminate a specific connection by ID
+        - Remove Conncection within peer_connections Dictionary 
+        - Send error message if not found within dictionary or error
+    """
+    #Find if key (connection_id) exist within the dictionary (peer_connections)
+    if connection_id in peer_connections: 
+
+        #pop from dictionary removes (key and value) and deletes it entirely while returning value
+        closeConnection = peer_connections.pop(connection_id)
+
+        #close the socket connection
+        try: 
+
+            #.close() terminates network socket connection 
+            closeConnection.close()
+            print(f"Connection {connection_id} has been terminated!.")
+
+        #handle errors if socket cannot close for some reason e
+        except Exception as e:
+
+            print(f"An error occurred while atteping to closing connection {connection_id}: {e}")
+    
+    #if the key (connection_id) doesn't exist within the dict then say not found to user
+    else:
+
+        print(f"Connection ID {connection_id} not found with peer_connections")
 
 
-def cleanup_connections():
-    """Close all connections on exit"""
-    # TODO: close all sockets and server_socket
-    pass
+def cleanup_connections(peer_connections, server_socket):
+    #Josh
+    """
+        Close all connections on exit
+        Make sure dictionary is empty.
+        Have to close the main server socket
+    """
+
+    #Display size dictionary (size of connections)
+    print(f"Number of connection(s) to close: {len(peer_connections)}")
+    
+    for uID in peer_connections:
+        
+        socketObj = peer_connections.pop(uID)
+        
+        #Close Socket
+        try: 
+            socketObj.close()
+        
+        #if there is an error than the client socket might be closed
+        except Exception as e:
+            
+            print(f"An error occurred while atteping to closing connection {socketObj}: {e}")
+
+    #Double checking that the dictionary is completed cleared
+    peer_connections.clear()
+    print(f"Closed and cleared {len(peer_connections)} client connection(s).")
+
+    #Close out the main server socket
+    if server_socket:
+        try:
+            server_socket.close()
+            print("Main server socket has been closed.")
+        except Exception as e:
+            print(f"Error closing the server socket: {e}")
+
 
 
 # Message handling
