@@ -89,7 +89,7 @@ def terminate_connection(connection_id, peer_connections):
     #Find if key (connection_id) exist within the dictionary (peer_connections)
     if connection_id in peer_connections: 
 
-        #pop from dictionary removes (key and value) and deletes it entirely while returning value
+        #pop from dictionary removes (key and value)  and deletes it entirely while returning value
         closeConnection = peer_connections.pop(connection_id)
 
         #close the socket connection
