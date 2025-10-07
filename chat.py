@@ -180,6 +180,7 @@ def receive_messages(peer_socket, sender_ip, sender_port):
             break
 
 def broadcast_exit_notification():
+    #Josh
     """Notify all peers that this process is exiting"""
     exit_message = "EXIT"
     for conn_id, conn in peer_connections.items():
@@ -225,66 +226,196 @@ def is_self_connection(ip, port):
     return (ip == my_ip or ip == "127.0.0.1" or ip == "localhost") and port == listening_port
 
 
+
 # Command handlers
 def help():
+    #Josh 
     """Display available commands"""
-    # TODO: print available commands
-    pass
+    print("  myip                          - Display IP address of this process")
+    print("  myport                        - Display the port this process is listening on")
+    print("  connect <destination> <port>  - Connect to a peer at destination:port")
+    print("  list                          - Display list of all connections")
+    print("  terminate <connection id>     - Terminate the connection with the specified ID")
+    print("  send <connection id> <message>- Send a message to the specified connection")
+    print("  exit                          - Close all connections and exit")
 
 
 def myip():
+    #Josh
     """Display this process's IP address"""
-    # TODO: print get_my_ip() result
-    pass
+    ip = get_my_ip() #Under utility functions
+    print(f"My IP address: {ip}")
 
 
 def myport():
+    #Josh
     """Display this process's listening port"""
-    # TODO: print listening_port
-    pass
-
+    if listening_port: #listening_port is a global var/type boolean
+        print(f"My port: {listening_port}")
+    else:
+        print("Server not initialized")
+    
 
 def connect(args):
+    #Josh
     """Handle connect command"""
-    # TODO: parse args, validate, call connect_to_peer()
-    pass
+
+    #should be at least two arguments: destination and port
+    if len(args) < 2:
+        print("Error: connect command requires <destination> <port>")
+        return
+    
+    destination = args[0]
+    
+    try:
+        port = int(args[1])
+
+    except ValueError:
+        print("Error: Port must be a valid integer")
+        return
+    
+    # Validate IP address
+    if not validate_ip(destination): #utility function
+        print(f"Error: Invalid IP address format: {destination}")
+        return
+    
+    # Check if trying to connect to self
+    if is_self_connection(destination, port): #utility function
+        print("Error: Cannot connect to yourself")
+        return
+    
+    #Check for duplicate connection
+    if is_duplicate_connection(destination, port): #utility function
+        print(f"Error: Already connected to {destination}:{port}")
+        return
+    
+    # Attempt connection
+    success = connect_to_peer(destination, port)  #client connection
+    if not success:
+        print(f"Error: Failed to connect to {destination}:{port}")
 
 
 def list():
     """Display all connections"""
-    # TODO: print formatted list of peer_connections
-    pass
+    #check if dictionary is empty 
+    if not peer_connections:
+        print("No active connections")
+        return
+    
+    #Display results 
+    print(f"\nid: IP address              Port No.")
+    for conn_id, conn_info in peer_connections.items():
+        print(f"{conn_id}:  {conn_info['ip']:<20} {conn_info['port']}")
 
 
 def terminate(args):
+    #Josh
     """Handle terminate command"""
-    # TODO: parse connection_id, call terminate_connection()
-    pass
+    #Argument must be at least one: connection id
+    if len(args) < 1:
+        print("Error: terminate command requires <connection id>")
+        return
+    
+    #validate if the argument is an actually integer
+    try:
+        connection_id = int(args[0])
+    except ValueError:
+        print("Error: Connection ID must be a valid integer")
+        return
 
 
 def send(args):
+    #Josh
     """Handle send command"""
-    # TODO: parse connection_id and message, call send_message()
-    pass
+    #arguments must have two: connetion id and message 
+    if len(args) < 2:
+        print("Error: send command requires <connection id> <message>")
+        return
+
+    #validate connection id is an int 
+    try:
+        connection_id = int(args[0])
+    #if not an int print invalid argument for conneciton id
+    except ValueError:
+        print("Error: Connection ID must be a valid integer")
+        return
+
+    # Join remaining args as the message
+    message = ' '.join(args[1:])
+    
+
+    success = send_message(connection_id, message) #message handling function
+
+    #if the message failed to send
+    if not success:
+        print(f"Error: Failed to send message to connection {connection_id}")
 
 
 def exit():
     """Handle exit command"""
-    # TODO: notify peers, cleanup, and sys.exit()
-    pass
+    #ensure we are accessing the serving_running var 
+    #Boolean value 
+    global server_running
+    
+    
+    print("Exiting...")
+    broadcast_exit_notification() #client function
+    server_running = False
+
+    #client connection section
+    #ensure that all connections are close
+    #client connections
+    cleanup_connections(peer_connections, server_socket)
+    sys.exit(0)
 
 
 # Command line interface
 def parse_command(command_line):
     """Parse user input into command and arguments"""
-    # TODO: split input into command and args
-    pass
+    #.strip method removes and leading and trailing whitespace
+    #.splite method breaks a string into list of substrings
+    parts = command_line.strip().split()
+    if not parts:
+        return None, []
+    
+    command = parts[0].lower()
+    args = parts[1:]
+    return command, args
 
 
 def command_loop():
-    """Main command loop for user input"""
-    # TODO: input loop that dispatches to command handlers
-    pass
+    while True:
+        try:
+        
+            command_line = input()
+            command, args = parse_command(command_line)
+            
+            if command is None:
+                continue 
+            
+            if command == "help":
+                help()
+            elif command == "myip":
+                myip()
+            elif command == "myport":
+                myport()
+            elif command == "connect":
+                connect(args)
+            elif command == "list":
+                list()
+            elif command == "terminate":
+                terminate(args)
+            elif command == "send":
+                send(args)
+            elif command == "exit":
+                exit()
+            else:
+                print(f"Unknown command: {command}. Type 'help' for available commands.")
+        
+        except EOFError:
+            exit()
+        except KeyboardInterrupt:
+            print("\nUse 'exit' command to quit")
 
 
 # Main program
