@@ -181,33 +181,48 @@ def receive_messages(peer_socket, sender_ip, sender_port):
 
 def broadcast_exit_notification():
     """Notify all peers that this process is exiting"""
-    # TODO: send exit message to all connected peers
-    pass
+    exit_message = "EXIT"
+    for conn_id, conn in peer_connections.items():
+        try:
+            conn['socket'].send(exit_message.encode())
+        except:
+            pass
 
 
 # Utility functions
 def get_my_ip():
     """Get actual IP address of this machine (not 127.0.0.1)"""
-    # TODO: return actual IP address (not localhost)
-    pass
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except:
+        return "Unable to determine IP address"
 
 
 def validate_ip(ip_address):
     """Validate IP address format"""
-    # TODO: check if IP format is valid
-    pass
+    try:
+        socket.inet_aton(ip_address)
+        return True
+    except socket.error:
+        return False
 
 
 def is_duplicate_connection(ip, port):
     """Check if connection already exists"""
-    # TODO: check if ip:port already in peer_connections
-    pass
+    for conn in peer_connections.values():
+        if conn['ip'] == ip and conn['port'] == port:
+            return True
+    return False
 
 
 def is_self_connection(ip, port):
     """Check if trying to connect to self"""
-    # TODO: check if connecting to own IP and port
-    pass
+    my_ip = get_my_ip()
+    return (ip == my_ip or ip == "127.0.0.1" or ip == "localhost") and port == listening_port
 
 
 # Command handlers
