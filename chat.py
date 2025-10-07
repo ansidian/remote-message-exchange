@@ -421,8 +421,31 @@ def command_loop():
 # Main program
 def main():
     """Main entry point"""
-    # TODO: parse sys.argv, start server, start command loop
-    pass
+    if len(sys.argv) != 2:
+        print("Error:, please specify Port using: python chat.py <port>")
+        sys.exit(1)
+
+    try:
+        port = int(sys.argv[1])
+    except ValueError:
+        print("Error: Port must be a valid integer")
+        sys.exit(1)
+
+    if port < 1024 or port > 65535:
+        print("Error: Port must be in range 1024-65535")
+        sys.exit(1)
+
+    initialize_server(port)
+
+    print("=" * 50)
+    print("P2P Chat Application Started")
+    print("=" * 50)
+    print(f"Listening on IP: {get_my_ip()}")
+    print(f"Listening on Port: {listening_port}")
+    print("\nType 'help' for available commands")
+    print("=" * 50)
+
+    command_loop()
 
 
 if __name__ == "__main__":
