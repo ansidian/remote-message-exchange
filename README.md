@@ -95,4 +95,17 @@ Close all connections and terminate the process. Other connected peers will be n
 
 ## Contributors
 
-<!-- Add your name and contribution details here -->
+### Andy ([@ansidian](https://github.com/ansidian))
+- Server initialization and connection acceptance functions
+- Client connection functions
+- Message handling functions
+- Main program and command loop
+
+### Joshua Soteras ([@soterasjoshua](https://github.com/soterasjoshua))
+- Command handler functions
+- Connection management functions
+- Command parsing functions
+
+### Sanskar Thapa ([@sskarz](https://github.com/sskarz))
+- Utility functions
+- Notification functions
