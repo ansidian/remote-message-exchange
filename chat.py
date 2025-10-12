@@ -303,14 +303,14 @@ def connect(args):
         print(f"Error: Failed to connect to {destination}:{port}")
 
 
-def list():
+def list_connections():
     """Display all connections"""
-    #check if dictionary is empty 
+    #check if dictionary is empty
     if not peer_connections:
         print("No active connections")
         return
-    
-    #Display results 
+
+    #Display results
     print(f"\nid: IP address              Port No.")
     for conn_id, conn_info in peer_connections.items():
         print(f"{conn_id}:  {conn_info['ip']:<20} {conn_info['port']}")
@@ -413,7 +413,7 @@ def command_loop():
             elif command == "connect":
                 connect(args)
             elif command == "list":
-                list()
+                list_connections()
             elif command == "terminate":
                 terminate(args)
             elif command == "send":
