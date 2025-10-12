@@ -46,7 +46,7 @@ def accept_connections():
 
             print(f"Connection accepted from {address[0]}:{address[1]}")
 
-            thread = threading.Thread(target=receive_messages, args=(connection_socket, address[0], address[1]), daemon=True)
+            thread = threading.Thread(target=receive_messages, args=(connection_socket, address[0], address[1], connection_counter), daemon=True)
             thread.start()
         except:
             break
@@ -72,7 +72,7 @@ def connect_to_peer(destination, port):
         notification = "CONNECTED"
         client_socket.send(notification.encode())
 
-        thread = threading.Thread(target=receive_messages, args=(client_socket, destination, port), daemon=True)
+        thread = threading.Thread(target=receive_messages, args=(client_socket, destination, port, connection_counter), daemon=True)
         thread.start()
         return True
     except:
@@ -164,10 +164,11 @@ def send_message(connection_id, message):
     return False
 
 
-def receive_messages(peer_socket, sender_ip, sender_port):
+def receive_messages(peer_socket, sender_ip, sender_port, connection_id):
     """Handle incoming messages from a peer"""
+    global peer_connections
     while True:
-        try: 
+        try:
             data = peer_socket.recv(1024)
             if not data:
                 break
@@ -181,6 +182,10 @@ def receive_messages(peer_socket, sender_ip, sender_port):
                 print(f"Message: {message}")
         except:
             break
+
+    if connection_id in peer_connections:
+        peer_connections.pop(connection_id)
+        print(f"Connection {connection_id} closed by peer {sender_ip}:{sender_port}")
 
 def broadcast_exit_notification():
     #Josh
