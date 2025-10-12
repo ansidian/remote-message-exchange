@@ -96,7 +96,8 @@ def terminate_connection(connection_id, peer_connections):
         try: 
 
             #.close() terminates network socket connection 
-            closeConnection.close()
+            #bug error: access the socket to close in the dictionary
+            closeConnection['socket'].close()
             print(f"Connection {connection_id} has been terminated!.")
 
         #handle errors if socket cannot close for some reason e
@@ -121,18 +122,20 @@ def cleanup_connections(peer_connections, server_socket):
     #Display size dictionary (size of connections)
     print(f"Number of connection(s) to close: {len(peer_connections)}")
     
-    for uID in peer_connections:
+    #FIXED: creating a list to avoid runtime error 
+    #dictionary changes size when items are popped off
+    for uID in list(peer_connections.keys()):
         
         socketObj = peer_connections.pop(uID)
         
         #Close Socket
         try: 
-            socketObj.close()
+            socketObj['socket'].close()
         
         #if there is an error than the client socket might be closed
         except Exception as e:
             
-            print(f"An error occurred while atteping to closing connection {socketObj}: {e}")
+            print(f"An error occurred while attempting to closing connection {socketObj}: {e}")
 
     #Double checking that the dictionary is completed cleared
     peer_connections.clear()
@@ -322,6 +325,9 @@ def terminate(args):
     except ValueError:
         print("Error: Connection ID must be a valid integer")
         return
+    
+    # FIXED: Actually call terminate_connection to terminate the connection
+    terminate_connection(connection_id, peer_connections)
 
 
 def send(args):
